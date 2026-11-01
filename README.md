@@ -1,0 +1,2 @@
+# MathsTools
+MATH, BUT INTERACTIVE! Six Python math projects with graph transformations, triangle drawing, matrix operations, LCM, arithmetic series, and line distances. Tkinter GUIs + terminal tools. Free, offline, and open source!
