@@ -2,7 +2,7 @@ import tkinter as tk
 import math
 from tkinter import messagebox
 MAKER = "  Made by:"
-NAME  = "Azam Abdullah Albagami"
+NAME  = "B8MI"
 DATE  = "   2024/4/21"
 SPACER = " "
 letters = ["X and Y text box", "Submit", "Lines colors", "Clear lines", "-90° & 90° Rotate", "180° Rotate", "270° & -270° Rotate", "Displace on Y", "Mirroring", "Displace on X"]
