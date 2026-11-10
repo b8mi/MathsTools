@@ -4,7 +4,7 @@
 
 Three projects use a **Tkinter window**. The other three run in your terminal.
 
-## Projects
+## Projects 
 
 | Project | Interface | What it does |
 | --- | --- | --- |
