@@ -1,5 +1,4 @@
 # Python Math Projects
-
 **MAKE MATH INTERACTIVE!** A collection of six Python projects for exploring coordinate transformations, triangles, matrices, number theory, series, and distances between lines. These started as school math projects and smaller experiments. I brought the working ideas together here, fixed calculation and input problems, and kept one version of each project instead of uploading every duplicate.
 
 Three projects use a **Tkinter window**. The other three run in your terminal.
