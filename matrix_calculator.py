@@ -9,7 +9,7 @@ def read_positive_int(prompt):
                 return value
         except ValueError:
             pass
-        print("Enter a positive whole number.")
+        print("Enter a whole number greater than 0.")
 
 
 def read_float(prompt):
@@ -24,8 +24,8 @@ def read_float(prompt):
 
 
 def input_matrix(name):
-    rows = read_positive_int(f"Rows in matrix {name}: ")
-    cols = read_positive_int(f"Columns in matrix {name}: ")
+    rows = read_positive_int(f"enter the rows in matrix {name}: ")
+    cols = read_positive_int(f"enter the columns in matrix {name}: ")
     values = []
     for i in range(rows):
         while True:
@@ -85,7 +85,7 @@ def choose_matrix(a, b):
 
 def main():
     print("\nMATRIX CALCULATOR")
-    print("Enter the values for two matrices. You can change either one later.")
+    print("Enter the values for the two matrices. either one later can be changed later.")
     a = input_matrix("A")
     b = input_matrix("B")
     while True:
