@@ -9,7 +9,7 @@ letters = ["X and Y text box", "Submit", "Lines colors", "Clear lines", "-90° &
 numbers = ["Type the cords\nfor the x and y\npoints in the\ntext rectangle.\n", "Once you type\nthe cords for \nthe lines, press\nsubmit to draw\nthem.", "Customise your\nlines color.\n\n\n", "Press the clear\nbutton to delete\nall the lines\nyou have drawn.\n", "Rotate your lines\nCounterClockWise\nwith 90°, rotate\nyour lines -90°\nfor ClockWise.", "Rotate your lines\n180°.\n\n\n", "Rotate your lines\nCounterClockWise\nwith 270°, and \nrotate your lines \n-270°for ClockWise.", "Displace your\nlines Up by one\ny+1,and Displace\nyour lines Down\nby one y-1", "press \"V\" to\nreflect on Y axis,\nvertical mirror.\n\"H\" to reflect on\nX axis, horizontal.", "Displace your lines\nLeft by one x-1,\nand displace your\nlines Right by one\nx+1."]#a
 explaining = ["Draws a line \nbased on the \ngiven(x,y) cords.", "No Explaination", "No Explaination", "No Explaination", "before -90 ( x, y)\nafter    -90 ( y,-x)\n\nbefore  90 ( x, y)\nafter     90 (-y, x)", "before 180 ( x, y)\nafter    180 (-x,-y)", "before -270 ( x, y)\nafter    -270 (-y, x)\n\nbefore 270 ( x, y)\nafter    270 ( y,-x)",  "before y+1(x, y)\nafter    y+1(x,y+1)\n\nbefore  y-1(x, y)\nafter     y-1(x,y-1)", "Before Flip x (x, y)\nafter    Flip x (x,-y)\nBefore Flip y ( x,y)\nafter    Flip y (-x,y)", "before x+1( x,y)\nafter    x+1(x+1,y)\n\nbefore  x-1( x,y)\nafter     x-1(x-1,y)"]
 
-explaining_fonts_style =[ 18, 18, 18, 18, 18, 18, 18, 18, 16, 18]
+explaining_fonts_style =[18 ,18 ,18 ,18 ,18 ,18, 18, 18 , 16 ,18]
 explaining_placementx = [303,295,295,295,295,296,295,296,300,296]
 explaining_placementy = [140,120,120,120,162,124,162,162,160,162]
 #locate
@@ -41,7 +41,6 @@ def submit():
     x_input2 = xrangle_x2.get().strip()
     y_input2 = xrangle_y2.get().strip()
 
-    # Empty coordinate fields represent zero; reject invalid numeric inputs.
     try:
         x_value = float(x_input) if x_input else 0.0
         y_value = float(y_input) if y_input else 0.0
@@ -246,7 +245,8 @@ def open_tutorial():
     canvas_tutorial.create_line(10, 234, 390, 234, fill='dark grey', width=2)
     canvas_tutorial.create_line(210, 95, 380, 95, fill='dark grey', width=2)
     canvas_tutorial.create_line(20, 95, 190, 95, fill='dark grey', width=2)
-    # BUTTONS
+
+    
     next_button = tk.Button(page, text="Next", font=("Arial", 14), width=8, height=1, command=next_element)
     next_button.place(x=283, y=243)
 
