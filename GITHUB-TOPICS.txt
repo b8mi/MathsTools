@@ -1,7 +1,7 @@
  
 python
 mathematics
-math-projects
+math-projects 
 tkinter
 math-education
 educational-software
