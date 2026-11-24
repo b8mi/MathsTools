@@ -1,6 +1,5 @@
 import math
 
-
 def least_common_multiple(numbers):
     if not numbers:
         raise ValueError("Supply at least one integer.")
