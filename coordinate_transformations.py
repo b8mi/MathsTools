@@ -1,177 +1,314 @@
-
-import tkinter as tk 
+import tkinter as tk
 import math
-from tkinter import messagebox
-MAKER = "  Made by:"
-NAME  = "Azam Albagami"
-DATE  = "   2024/4/21"
-SPACER = " "
-letters = ["X and Y text box", "Submit", "Lines colors", "Clear lines", "-90° & 90° Rotate", "180° Rotate", "270° & -270° Rotate", "Displace on Y", "Mirroring", "Displace on X"]
-numbers = ["Type the cords\nfor the x and y\npoints in the\ntext rectangle.\n", "Once you type\nthe cords for \nthe lines, press\nsubmit to draw\nthem.", "Customise your\nlines color.\n\n\n", "Press the clear\nbutton to delete\nall the lines\nyou have drawn.\n", "Rotate your lines\nCounterClockWise\nwith 90°, rotate\nyour lines -90°\nfor ClockWise.", "Rotate your lines\n180°.\n\n\n", "Rotate your lines\nCounterClockWise\nwith 270°, and \nrotate your lines \n-270°for ClockWise.", "Displace your\nlines Up by one\ny+1,and Displace\nyour lines Down\nby one y-1", "press \"V\" to\nreflect on Y axis,\nvertical mirror.\n\"H\" to reflect on\nX axis, horizontal.", "Displace your lines\nLeft by one x-1,\nand displace your\nlines Right by one\nx+1."]#a
-explaining = ["Draws a line \nbased on the \ngiven(x,y) cords.", "No Explaination", "No Explaination", "No Explaination", "before -90 ( x, y)\nafter    -90 ( y,-x)\n\nbefore  90 ( x, y)\nafter     90 (-y, x)", "before 180 ( x, y)\nafter    180 (-x,-y)", "before -270 ( x, y)\nafter    -270 (-y, x)\n\nbefore 270 ( x, y)\nafter    270 ( y,-x)",  "before y+1(x, y)\nafter    y+1(x,y+1)\n\nbefore  y-1(x, y)\nafter     y-1(x,y-1)", "Before Flip x (x, y)\nafter    Flip x (x,-y)\nBefore Flip y ( x,y)\nafter    Flip y (-x,y)", "before x+1( x,y)\nafter    x+1(x+1,y)\n\nbefore  x-1( x,y)\nafter     x-1(x-1,y)"]
- 
-explaining_fonts_style =[18 ,18 ,18 ,18 ,18 ,18, 18, 18 , 16 ,18]
-explaining_placementx = [303,295,295,295,295,296,295,296,300,296]
-explaining_placementy = [140,120,120,120,162,124,162,162,160,162]
-#locate
-lines_in_graphing_tool_u = [[20, 28, 380, 28], [6, 130, 115, 130], [118, 146, 269, 146], [393, 130, 273, 130], [15, 216, 158, 216], [165, 216, 233, 216], [240, 216, 383, 216], [5, 302, 126, 302], [129, 302, 275, 302], [277, 302, 399, 302]]
-lines_in_graphing_tool_d = [[20, 106, 380, 106], [6, 174, 115, 174], [118, 174, 269, 174], [393, 174, 273, 174], [15, 264, 158, 264], [165, 264, 233, 264], [240, 264, 383, 264], [5, 345, 126, 345], [129, 345, 275, 345], [277, 345, 399, 345]]
-lines_in_graphing_tool_l = [[20, 28, 20, 106], [6, 130, 6, 175], [118, 146, 118, 175], [273, 130, 273, 174], [15, 216, 15, 265], [165, 216, 165, 264], [240, 216, 240, 264], [5, 302, 5, 346], [129, 302, 129, 345], [277, 302, 277, 345]]
-lines_in_graphing_tool_r = [[380, 28, 380, 106], [114, 130, 114, 175], [269, 146, 269, 175], [393, 130, 393, 175], [157, 216, 157, 265], [232, 216, 232, 264],[382, 216, 382, 264], [126, 302, 126, 346], [274, 302, 274, 345], [398, 302, 398, 345]]
-fonts_style =[ 18, 18, 18, 18, 16, 18, 15, 17, 16, 15]
-placementx = [105,105,105,111,110,108,111,110,105,106]
-placementy = [165,165,165,165,158,165,155,162,160,156]
+from tkinter import messagebox, simpledialog
+from copy import deepcopy
+
+MAKER = "Made by:"
+NAME = "Azam Albagami"
+DATE = "2024/4/21"
+HISTORY_LIMIT = 100
+
+letters = [
+    "X and Y text box", "Submit", "Lines colors", "Clear lines",
+    "-90° & 90° Rotate", "180° Rotate", "270° & -270° Rotate",
+    "Displace on Y", "Mirroring", "Displace on X"
+]
+
+numbers = [
+    "Type the cords\nfor the x and y\npoints in the\ntext rectangle.",
+    "Once you type\nthe cords for\nthe lines, press\nsubmit to draw\nthem.",
+    "Customise your\nlines color.",
+    "Press the clear\nbutton to delete\nall the lines\nyou have drawn.",
+    "Rotate your lines\nCounterClockWise\nwith 90°, rotate\nyour lines -90°\nfor ClockWise.",
+    "Rotate your lines\n180°.",
+    "Rotate your lines\nCounterClockWise\nwith 270°, and\nrotate your lines\n-270° for ClockWise.",
+    "Displace your\nlines Up by one\ny+1, and Displace\nyour lines Down\nby one y-1.",
+    'Press "V" to\nreflect on Y axis.\nPress "H" to reflect\non X axis.',
+    "Displace your lines\nLeft by one x-1,\nand displace your\nlines Right by one\nx+1."
+]
+
+explaining = [
+    "Draws a line\nbased on the\ngiven (x,y) cords.",
+    "No Explanation",
+    "No Explanation",
+    "No Explanation",
+    "Before -90 (x,y)\nAfter -90 (y,-x)\n\nBefore 90 (x,y)\nAfter 90 (-y,x)",
+    "Before 180 (x,y)\nAfter 180 (-x,-y)",
+    "Before -270 (x,y)\nAfter -270 (-y,x)\n\nBefore 270 (x,y)\nAfter 270 (y,-x)",
+    "Before y+1 (x,y)\nAfter y+1 (x,y+1)\n\nBefore y-1 (x,y)\nAfter y-1 (x,y-1)",
+    "Before Flip X (x,y)\nAfter Flip X (x,-y)\n\nBefore Flip Y (x,y)\nAfter Flip Y (-x,y)",
+    "Before x+1 (x,y)\nAfter x+1 (x+1,y)\n\nBefore x-1 (x,y)\nAfter x-1 (x-1,y)"
+]
+
+tutorial_boundaries = [
+    (20, 28, 380, 106),
+    (6, 130, 115, 175),
+    (118, 146, 269, 175),
+    (273, 130, 393, 175),
+    (15, 216, 158, 265),
+    (165, 216, 233, 265),
+    (240, 216, 383, 265),
+    (5, 302, 126, 346),
+    (129, 302, 275, 346),
+    (277, 302, 399, 346)
+]
 
 current_index = 0
-
 mover = 12
 
-next_button_click_count = 0
-
 lines = []
-
 selected_colors = []
-
 line_colors = ["green", "#b8860b", "purple"]
 
-def submit():
+undo_stack = []
+redo_stack = []
+
+
+def capture_state():
+    return deepcopy(lines), selected_colors.copy()
+
+
+def restore_state(state):
     global lines, selected_colors
-    
-    x_input = xrangle_x.get().strip()
-    y_input = xrangle_y.get().strip()
-    x_input2 = xrangle_x2.get().strip()
-    y_input2 = xrangle_y2.get().strip()
-
-    try:
-        x_value = float(x_input) if x_input else 0.0
-        y_value = float(y_input) if y_input else 0.0
-        x2_value = float(x_input2) if x_input2 else 0.0
-        y2_value = float(y_input2) if y_input2 else 0.0
-    except ValueError:
-        messagebox.showerror("Invalid coordinates", "Enter numbers for the four coordinates.")
-        return
-    if not all(math.isfinite(n) for n in (x_value, y_value, x2_value, y2_value)):
-        messagebox.showerror("Invalid coordinates", "Coordinates must be finite numbers.")
-        return
-    
-    color_index = -1
-    
-    for i, toggle_button in enumerate(toggle_buttons):
-        if toggle_button['relief'] == tk.SUNKEN:
-            color_index = i
-            break
-
-    lines.append([(x_value, y_value), (x2_value, y2_value)])
-    selected_colors.append(color_index)
-    
+    lines, selected_colors = state
     draw_lines()
+    update_history_buttons()
+
+
+def update_history_buttons():
+    if "undo_button" in globals():
+        undo_button.config(state=tk.NORMAL if undo_stack else tk.DISABLED)
+        redo_button.config(state=tk.NORMAL if redo_stack else tk.DISABLED)
+
+
+def remember_state():
+    undo_stack.append(capture_state())
+
+    if len(undo_stack) > HISTORY_LIMIT:
+        undo_stack.pop(0)
+
+    redo_stack.clear()
+    update_history_buttons()
+
+
+def undo():
+    if undo_stack:
+        redo_stack.append(capture_state())
+        restore_state(undo_stack.pop())
+
+
+def redo():
+    if redo_stack:
+        undo_stack.append(capture_state())
+        restore_state(redo_stack.pop())
+
+
+def get_selected_color():
+    for i, button in enumerate(toggle_buttons):
+        if button["relief"] == tk.SUNKEN:
+            return i
+    return -1
+
+
+def add_segments(segments):
+    remember_state()
+    lines.extend(segments)
+    selected_colors.extend([get_selected_color()] * len(segments))
+    draw_lines()
+
+
+def transform_points(operation):
+    global lines
+
+    if not lines:
+        return
+
+    transformed = [[operation(x, y) for x, y in segment] for segment in lines]
+
+    for segment in transformed:
+        for point in segment:
+            if not all(math.isfinite(n) for n in point):
+                messagebox.showerror("Invalid transformation", "Coordinates are too large.")
+                return
+
+    if transformed == lines:
+        return
+
+    remember_state()
+    lines = transformed
+    draw_lines()
+
+
+def rotation_function(degree):
+    degree %= 360
+
+    if degree == 0:
+        return lambda x, y: (x, y)
+    if degree == 90:
+        return lambda x, y: (-y, x)
+    if degree == 180:
+        return lambda x, y: (-x, -y)
+    if degree == 270:
+        return lambda x, y: (y, -x)
+
+    angle = math.radians(degree)
+    cos_a = math.cos(angle)
+    sin_a = math.sin(angle)
+
+    return lambda x, y: (x * cos_a - y * sin_a, x * sin_a + y * cos_a)
+
+
+def custom_rotation():
+    degree = simpledialog.askfloat("Custom rotation", "Enter angle in degrees:", parent=root)
+
+    if degree is None:
+        return
+
+    if not math.isfinite(degree):
+        messagebox.showerror("Invalid angle", "Enter a finite angle.")
+        return
+
+    rotate_lines(degree)
+
+
+def read_coordinates():
+    entries = [xrangle_x, xrangle_y, xrangle_x2, xrangle_y2]
+    coordinates = []
+
+    for entry in entries:
+        value = entry.get().strip()
+        coordinates.append(float(value) if value else 0.0)
+
+    if not all(math.isfinite(n) for n in coordinates):
+        raise ValueError("Coordinates must be finite numbers.")
+
+    return coordinates
+
+
+def submit():
+    try:
+        x1, y1, x2, y2 = read_coordinates()
+    except ValueError as exc:
+        messagebox.showerror("Invalid coordinates", str(exc))
+        return
+
+    add_segments([[(x1, y1), (x2, y2)]])
+
 
 def rotate_lines(degree):
-    global lines
-    for i in range(len(lines)):
-        x1, y1 = lines[i][0]
-        x2, y2 = lines[i][1]
-        if degree == 90 or degree == -270:
-            lines[i] = [(-y1, x1), (-y2, x2)]
-        elif degree == -90 or degree == 270:
-            lines[i] = [(y1, -x1), (y2, -x2)]
-        elif degree == 180 or degree == -180:
-            lines[i] = [(-x1, -y1), (-x2, -y2)]
-    draw_lines()
+    transform_points(rotation_function(degree))
+
 
 def displace_lines(dx, dy):
-    global lines
-    for i in range(len(lines)):
-        lines[i] = [tuple(coord + delta for coord, delta in zip(point, (dx, dy))) for point in lines[i]]
-    draw_lines()
+    transform_points(lambda x, y: (x + dx, y + dy))
+
+
+def world_to_canvas(point):
+    x, y = point
+    center_x = square_x + square_size / 2
+    center_y = square_y + square_size / 2
+    return center_x + x * cell_size, center_y - y * cell_size
+
+
+def canvas_to_world(point):
+    x, y = point
+    center_x = square_x + square_size / 2
+    center_y = square_y + square_size / 2
+    return (x - center_x) / cell_size, (center_y - y) / cell_size
+
+
+def resolve_line_color(index):
+    if index >= len(selected_colors):
+        return "black"
+
+    color_index = selected_colors[index]
+    return line_colors[color_index] if color_index != -1 else "black"
+
 
 def draw_lines():
     canvas.delete("line")
 
-    for i, line in enumerate(lines):
-        color_index = selected_colors[i] if i < len(selected_colors) else -1
-        line_color = line_colors[color_index] if color_index != -1 else "black"
-        
-        start_x = (601 + ((6.2 * line[0][0]) / 100) * square_size)
-        start_y = -138 + square_size - ((6.22 * line[0][1]) / 100) * square_size
-        end_x = 601 + ((6.2 * line[1][0]) / 100) * square_size
-        end_y = -138 + square_size - ((6.22 * line[1][1]) / 100) * square_size
-        
-        canvas.create_line(start_x, start_y, end_x, end_y, fill=line_color, width=1.5, tags="line")
+    for i, segment in enumerate(lines):
+        color = resolve_line_color(i)
+        start = world_to_canvas(segment[0])
+        end = world_to_canvas(segment[1])
+
+        if not all(math.isfinite(n) for n in (*start, *end)):
+            continue
+
+        canvas.create_line(*start, *end, fill=color, width=1.5, tags="line")
+
 
 def toggle_button(index):
-    for i in range(len(toggle_buttons)):
-        if i == index:
-            toggle_buttons[i].config(relief=tk.SUNKEN)
-        else:
-            toggle_buttons[i].config(relief=tk.RAISED)
+    for i, button in enumerate(toggle_buttons):
+        button.config(relief=tk.SUNKEN if i == index else tk.RAISED)
+
 
 def clear_lines():
-    global lines, selected_colors
-    lines = []
-    selected_colors = []
-    canvas.delete("line")
+    if not lines:
+        return
+
+    remember_state()
+    lines.clear()
+    selected_colors.clear()
+    draw_lines()
+
 
 def mirror_lines_ony():
-    global lines
-    for i in range(len(lines)):
-        x1, y1 = lines[i][0]
-        x2, y2 = lines[i][1]
-        lines[i] = [(-x1, y1), (-x2, y2)]
-    draw_lines()
+    transform_points(lambda x, y: (-x, y))
+
 
 def mirror_lines_onx():
-    global lines
-    for i in range(len(lines)):
-        x1, y1 = lines[i][0]
-        x2, y2 = lines[i][1]
-        lines[i] = [(x1, -y1), (x2, -y2)]
-    draw_lines()
+    transform_points(lambda x, y: (x, -y))
+
 
 def y_plus_one():
     displace_lines(0, 1)
 
+
 def y_minus_one():
     displace_lines(0, -1)
+
 
 def x_minus_one():
     displace_lines(-1, 0)
 
-def display_elements(canvas_tutorial):
-    global current_index
-    global canvas
 
-    global lines_in_graphing_tool_u
-    global lines_in_graphing_tool_d
-    global lines_in_graphing_tool_l
-    global lines_in_graphing_tool_r
-    global a, b, c, d
-    
+def x_plus_one():
+    displace_lines(1, 0)
 
-    canvas_tutorial.delete("elements")
+
+def polygon_to_segments(points):
+    return [[points[i], points[(i + 1) % len(points)]] for i in range(len(points))]
+
+
+def draw_square():
+    points = [(1.0, 1.0), (1.0, 5.0), (5.0, 5.0), (5.0, 1.0)]
+    add_segments(polygon_to_segments(points))
+
+
+def highlight_tutorial_control():
     canvas.delete("lines0")
+    bounds = tutorial_boundaries[current_index]
+    canvas.create_rectangle(*bounds, outline="red", width=2, tags="lines0")
 
-    a = (lines_in_graphing_tool_u[current_index][0], lines_in_graphing_tool_u[current_index][1], lines_in_graphing_tool_u[current_index][2], lines_in_graphing_tool_u[current_index][3])
-    b = (lines_in_graphing_tool_d[current_index][0], lines_in_graphing_tool_d[current_index][1], lines_in_graphing_tool_d[current_index][2], lines_in_graphing_tool_d[current_index][3])
-    c = (lines_in_graphing_tool_l[current_index][0], lines_in_graphing_tool_l[current_index][1], lines_in_graphing_tool_l[current_index][2], lines_in_graphing_tool_l[current_index][3])
-    d = (lines_in_graphing_tool_r[current_index][0], lines_in_graphing_tool_r[current_index][1], lines_in_graphing_tool_r[current_index][2], lines_in_graphing_tool_r[current_index][3])
-    
-    canvas.create_line(a, fill='red', width=2, tags="lines0")
-    canvas.create_line(b, fill='red', width=2, tags="lines0")
-    canvas.create_line(c, fill='red', width=2, tags="lines0")
-    canvas.create_line(d, fill='red', width=2, tags="lines0")
 
-    canvas_tutorial.create_text(295, 77, text=letters[current_index], font=("Arial", 15), fill="black", tags="elements")
-    canvas_tutorial.create_text(105, 75, text="Description:", font=("Arial", 20), fill="black", tags="elements")
-    canvas_tutorial.create_line(200, 50, 200, 233, fill='dark grey', width=2, tags="elements")
+def display_elements(canvas_tutorial):
+    canvas_tutorial.delete("elements")
+    highlight_tutorial_control()
 
-    canvas_tutorial.create_text(placementx[current_index], placementy[current_index], text=numbers[current_index], font=("Arial", fonts_style[current_index]), fill="black", tags="elements")
-    canvas_tutorial.create_text(explaining_placementx[current_index], explaining_placementy[current_index], text=explaining[current_index], font=("Arial", explaining_fonts_style[current_index]), fill="black", tags="elements")
+    canvas_tutorial.create_text(200, 30, text="Graphing Tool Properties:", font=("Arial", 17, "bold"), tags="elements")
+    canvas_tutorial.create_text(295, 77, text=letters[current_index], font=("Arial", 14), tags="elements")
+    canvas_tutorial.create_text(105, 75, text="Description:", font=("Arial", 18), tags="elements")
+    canvas_tutorial.create_line(200, 50, 200, 233, fill="dark grey", width=2, tags="elements")
 
-    canvas_tutorial.create_text(200, 30, text="Graphing Tool Properties:", font=("Arial", 17, "bold"), fill="black", tags="elements")
+    canvas_tutorial.create_text(105, 165, text=numbers[current_index], font=("Arial", 14), width=175, tags="elements")
+    canvas_tutorial.create_text(300, 160, text=explaining[current_index], font=("Arial", 14), width=185, tags="elements")
+
 
 def next_element():
     global current_index
+
     if current_index < len(letters) - 1:
         current_index += 1
         display_elements(canvas_tutorial)
@@ -180,6 +317,7 @@ def next_element():
 
 def previous_element():
     global current_index
+
     if current_index > 0:
         current_index -= 1
         display_elements(canvas_tutorial)
@@ -191,246 +329,252 @@ def update_tutorial_buttons():
         back_button.place_forget()
     else:
         back_button.place(x=19, y=243)
+
     if current_index == len(letters) - 1:
         next_button.place_forget()
     else:
         next_button.place(x=283, y=243)
 
 
-def x_plus_one():
-    displace_lines(1, 0)
-
-def draw_square():
-    global lines, selected_colors
-    square_lines = [
-        [(1.0, 1.0), (1.0, 5.0)],
-        [(5.0, 5.0), (1.0, 5.0)],
-        [(5.0, 1.0), (5.0, 5.0)],
-        [(1.0, 1.0), (5.0, 1.0)]
+def build_tutorial_borders():
+    borders = [
+        (10, 10, 390, 10),
+        (10, 10, 10, 290),
+        (390, 290, 390, 10),
+        (390, 290, 10, 290),
+        (10, 50, 390, 50),
+        (10, 234, 390, 234),
+        (210, 95, 380, 95),
+        (20, 95, 190, 95)
     ]
-    color_index = -1
-    for i, toggle_button in enumerate(toggle_buttons):
-        if toggle_button['relief'] == tk.SUNKEN:
-            color_index = i
-            break
-    lines.extend(square_lines)
-    selected_colors.extend([color_index] * len(square_lines))
-    draw_lines()
- 
-def open_tutorial():
-    global page, canvas_tutorial, current_index
-    if 'page' in globals() and page.winfo_exists():
-        page.lift()
-        return
-    current_index = 0
-    global next_button, back_button
-    global understood_button
-    global next_button_click_count
-    root.geometry(f"{width}x{height}+{50}+{200}")
-    page = tk.Toplevel(root)
-    page.title("Tutorial")
-    page.protocol("WM_DELETE_WINDOW", understood_button_click)
-    page.geometry("400x300+850+250")
 
-    canvas_tutorial = tk.Canvas(page, bg='light grey', width=width, height=height)
-    canvas_tutorial.pack(fill='both', expand=True)
-    display_elements(canvas_tutorial)
+    for coordinates in borders:
+        canvas_tutorial.create_line(*coordinates, fill="dark gray", width=2)
 
-    # LINES # LINES # LINES # LINES # LINES # LINES # LINES # LINES # LINES # LINES # LINES #
-    canvas_tutorial.create_line(10, 10, 390, 10, fill='dark gray', width=2)
-    canvas_tutorial.create_line(10, 10, 10, 290, fill='dark gray', width=2)
-    canvas_tutorial.create_line(390, 290, 390, 10, fill='dark gray', width=2)
-    canvas_tutorial.create_line(390, 290, 10, 290, fill='dark gray', width=2)
 
-    canvas_tutorial.create_line(10, 50, 390, 50, fill='dark grey', width=2)
-    canvas_tutorial.create_line(10, 234, 390, 234, fill='dark grey', width=2)
-    canvas_tutorial.create_line(210, 95, 380, 95, fill='dark grey', width=2)
-    canvas_tutorial.create_line(20, 95, 190, 95, fill='dark grey', width=2)
+def build_tutorial_buttons():
+    global next_button, back_button, understood_button
 
-    
-    next_button = tk.Button(page, text="Next", font=("Arial", 14), width=8, height=1, command=next_element)
+    next_button = tk.Button(page, text="Next", font=("Arial", 14), width=8, command=next_element)
+    back_button = tk.Button(page, text="Previous", font=("Arial", 14), width=9, command=previous_element)
+    understood_button = tk.Button(page, text="Understood", font=("Arial", 14), width=9, command=understood_button_click)
+
     next_button.place(x=283, y=243)
-
-    back_button = tk.Button(page, text="Previous", font=("Arial", 14), width=9, height=1, command=previous_element)
     back_button.place(x=19, y=243)
-
-    understood_button = tk.Button(page, text="Understood", font=("Arial", 14), width=9, height=1, command=understood_button_click)
     understood_button.place(x=151, y=243)
+
     update_tutorial_buttons()
 
 
-def next_button_click():
-    global next_button_click_count
-    next_button_click_count += 1
+def open_tutorial():
+    global page, canvas_tutorial, current_index
+
+    if "page" in globals() and page.winfo_exists():
+        page.lift()
+        return
+
+    current_index = 0
+    root.geometry(f"{width}x{height}+50+200")
+
+    page = tk.Toplevel(root)
+    page.title("Tutorial")
+    page.geometry("400x300+850+250")
+    page.protocol("WM_DELETE_WINDOW", understood_button_click)
+
+    canvas_tutorial = tk.Canvas(page, bg="light grey", width=400, height=300)
+    canvas_tutorial.pack(fill="both", expand=True)
+
+    build_tutorial_borders()
+    display_elements(canvas_tutorial)
+    build_tutorial_buttons()
+
 
 def understood_button_click():
-    global page
+    global current_index
     canvas.delete("lines0")
-
     page.destroy()
     root.geometry(f"{width}x{height}+{og_x}+{og_y}")
-
-    global next_button_click_count
-    next_button_click_count = 0
-
-    # The next opening starts at the first tutorial page.
-    global current_index
     current_index = 0
 
-if __name__ == "__main__":
+
+def create_window():
+    global root, canvas, width, height, og_x, og_y
+
     root = tk.Tk()
     root.title("Coordinate Transformations")
-    width = 800
-    height = 400
+
+    width, height = 800, 400
+
     screen_width = root.winfo_screenwidth()
     screen_height = root.winfo_screenheight()
-    x = (screen_width - width) // 2
-    y = (screen_height - height) // 2
-    og_x = x
-    og_y = y
 
-    root.geometry(f"{width}x{height}+{x}+{y}")
-    root.configure(bg='light grey')
+    og_x = (screen_width - width) // 2
+    og_y = (screen_height - height) // 2
 
-    canvas = tk.Canvas(root, bg='light grey', width=width, height=height)
-    canvas.pack(fill='both', expand=True)
+    root.geometry(f"{width}x{height}+{og_x}+{og_y}")
+    root.configure(bg="light grey")
+    root.resizable(False, False)
+
+    canvas = tk.Canvas(root, bg="light grey", width=width, height=height)
+    canvas.pack(fill="both", expand=True)
+
+
+def build_grid():
+    global square_size, square_x, square_y, cell_size
 
     square_size = min(width // 2, height - 63)
     square_x = width - square_size - 30
     square_y = (height - square_size) // 2
-    canvas.create_rectangle(square_x, square_y, square_x + square_size, square_y + square_size, fill='white', outline='')
+
+    canvas.create_rectangle(square_x, square_y, square_x + square_size, square_y + square_size, fill="white", outline="")
 
     grid_size = 16
-    cell_size = square_size // grid_size
+    cell_size = square_size / grid_size
 
     for i in range(grid_size + 1):
         y = square_y + i * cell_size
-        line_color = 'blue' if i == grid_size // 2 else 'gray'
-        canvas.create_line(square_x, y, square_x + square_size, y, fill=line_color)
+        color = "blue" if i == grid_size // 2 else "gray"
+        canvas.create_line(square_x, y, square_x + square_size, y, fill=color)
 
     for i in range(grid_size + 1):
         x = square_x + i * cell_size
-        line_color = 'red' if i == grid_size // 2 else 'gray'
-        canvas.create_line(x, square_y, x, square_y + square_size, fill=line_color)
+        color = "red" if i == grid_size // 2 else "gray"
+        canvas.create_line(x, square_y, x, square_y + square_size, fill=color)
 
-    available_width = square_x - 10
 
-    input_frame = tk.Frame(root, bg='light grey')
+def create_coordinate_entry(parent, name, row, column):
+    label = tk.Label(parent, text=name, bg="light grey", font=("Arial", 14, "bold"))
+    label.grid(row=row, column=column, padx=5, pady=5)
+
+    entry = tk.Entry(parent, width=12)
+    entry.grid(row=row, column=column + 1, padx=5, pady=5)
+    return entry
+
+
+def build_coordinate_inputs():
+    global xrangle_x, xrangle_y, xrangle_x2, xrangle_y2
+
+    input_frame = tk.Frame(root, bg="light grey")
     input_frame.place(x=33, y=29)
 
-    entry_width = 17
+    xrangle_x = create_coordinate_entry(input_frame, "x1:", 0, 0)
+    xrangle_y = create_coordinate_entry(input_frame, "y1:", 0, 2)
+    xrangle_x2 = create_coordinate_entry(input_frame, "x2:", 1, 0)
+    xrangle_y2 = create_coordinate_entry(input_frame, "y2:", 1, 2)
 
-    font_style = ("Arial", 14, "bold")
 
-    label_x = tk.Label(input_frame, text="x1:", bg='light grey', font=font_style)
-    label_x.grid(row=0, column=0, padx=5, pady=5)
+def create_button(text, command, x, y, button_width=5, font_size=12):
+    button = tk.Button(root, text=text, width=button_width, height=1, font=("Arial", font_size, "bold"), command=command)
+    button.place(x=x, y=y)
+    return button
 
-    xrangle_x = tk.Entry(input_frame, width=entry_width)
-    xrangle_x.grid(row=0, column=1, padx=5, pady=5)
 
-    label_y = tk.Label(input_frame, text="y1:", bg='light grey', font=font_style)
-    label_y.grid(row=0, column=2, padx=5, pady=5)
+def create_label(text, x, y, font_size=12):
+    label = tk.Label(root, text=text, bg="light grey", font=("Arial", font_size, "bold"))
+    label.place(x=x, y=y)
+    return label
 
-    xrangle_y = tk.Entry(input_frame, width=entry_width)
-    xrangle_y.grid(row=0, column=3, padx=5, pady=5)
 
-    label_x2 = tk.Label(input_frame, text="x2:", bg='light grey', font=font_style)
-    label_x2.grid(row=1, column=0, padx=5, pady=5)
+def build_rotation_buttons():
+    angles = [-90, 90, 180, 270, -270]
+    positions = [16, 91, 166, 241, 316]
 
-    xrangle_x2 = tk.Entry(input_frame, width=entry_width)
-    xrangle_x2.grid(row=1, column=1, padx=5, pady=5)
+    for angle, x in zip(angles, positions):
+        create_button(f"{angle}°", lambda value=angle: rotate_lines(value), x, 205 + mover, 4, 17)
 
-    label_y2 = tk.Label(input_frame, text="y2:", bg='light grey', font=font_style)
-    label_y2.grid(row=1, column=2, padx=5, pady=5)
 
-    xrangle_y2 = tk.Entry(input_frame, width=entry_width)
-    xrangle_y2.grid(row=1, column=3, padx=5, pady=5)
+def build_displacement_buttons():
+    controls = [
+        ("y+1", y_plus_one),
+        ("y-1", y_minus_one),
+        ('"V"', mirror_lines_ony),
+        ('"H"', mirror_lines_onx),
+        ("x-1", x_minus_one),
+        ("x+1", x_plus_one)
+    ]
 
-    initial_button_width = 8.5
-    initial_button_height = 1
-    new_button_width = int(initial_button_width)
-    new_button_height = int(initial_button_height)
-    button_font_style = ("Arial", int(14 * 1.25), "bold")
-    upper_bottons_font_style = ("Arial", int(12 * 1.25), "bold")
-    displace_buttons_font_style = ("Arial", int(12 * 1.25), "bold")
-    submit_button = tk.Button(root, text="Submit", width=new_button_width, height=new_button_height, font=upper_bottons_font_style , command=submit)
+    positions = [6, 68, 130, 204, 278, 340]
 
-    submit_button.place(x=8, y=120+mover)
+    for (text, command), x in zip(controls, positions):
+        create_button(text, command, x, 291 + mover, 4, 15)
 
-    middle_y = height // 2
 
-    line_end_x = available_width - 20
-    canvas.create_line(0, 183+mover, line_end_x, 183+mover, fill='dark gray', width=2)
-    vertical_line_x = square_x - 30
-    canvas.create_line(vertical_line_x, 0, vertical_line_x, height, fill='dark gray', width=2)
+def build_color_buttons():
+    global toggle_buttons
 
-    rotate_label = tk.Label(root, text="   Rotations   ", bg='light grey', font=("Arial", 12, "bold"))
-    rotate_label.place(x=30, y=172+mover)
-
-    mirror = tk.Label(root, text="Transformations & Mirrors", bg='light grey', font=("Arial", 12, "bold"))
-    mirror.place(x=30, y=257+mover)
-
-    name = tk.Label(root, text=f"{MAKER}{SPACER}{NAME}", bg='lightgray', font=("Arial", 10, "bold"))
-    name.place(x=15, y=350+mover)
-
-    date = tk.Label(root, text=DATE, bg='lightgray', font=("Arial", 10, "bold"))
-    date.place(x=300, y=350+mover)
-
-    button_widths = 4
-    button_height = 1
-
-    rotate_buttons = []
-    rotate_buttons_x = [30, 105, 180, 255, 330]
-    rotate_buttons.append(tk.Button(root, text="-90°", width=button_widths, height=button_height, font=button_font_style, command=lambda: rotate_lines(-90)))
-    rotate_buttons.append(tk.Button(root, text="90°", width=button_widths, height=button_height, font=button_font_style, command=lambda: rotate_lines(90)))
-    rotate_buttons.append(tk.Button(root, text="180°", width=button_widths, height=button_height, font=button_font_style, command=lambda: rotate_lines(180)))
-    rotate_buttons.append(tk.Button(root, text="270°", width=button_widths, height=button_height, font=button_font_style, command=lambda: rotate_lines(270)))
-    rotate_buttons.append(tk.Button(root, text="-270°", width=button_widths, height=button_height, font=button_font_style, command=lambda: rotate_lines(-270)))
-
-    for i in range(len(rotate_buttons)):
-        rotate_buttons[i].place(x=rotate_buttons_x[i]-14, y=205+mover)
-
-    displace_buttons = []
-    displace_buttons_x = [-20, 42, 104, 178, 252, 314]
-    displace_buttons.append(tk.Button(root, text="y+1", width=button_widths, height=button_height, font=displace_buttons_font_style, command=y_plus_one))
-    displace_buttons.append(tk.Button(root, text="y-1", width=button_widths, height=button_height, font=displace_buttons_font_style, command=y_minus_one))
-    displace_buttons.append(tk.Button(root, text="\"V\"", width=5, height=button_height, font=displace_buttons_font_style, command=mirror_lines_ony))
-    displace_buttons.append(tk.Button(root, text="\"H\"", width=5, height=button_height, font=displace_buttons_font_style, command=mirror_lines_onx))
-    displace_buttons.append(tk.Button(root, text="x-1", width=button_widths, height=button_height, font=displace_buttons_font_style, command=x_minus_one))
-    displace_buttons.append(tk.Button(root, text="x+1", width=button_widths, height=button_height, font=displace_buttons_font_style, command=x_plus_one))
-
-    for i in range(len(displace_buttons)):
-        displace_buttons[i].place(x=displace_buttons_x[i]+26, y=291+mover)
-
-    ##Name And Date
-    canvas.create_line(0, 373+mover, 403, 373+mover, fill='dark gray', width=2)
-    canvas.create_line(0, 349+mover, 403, 349+mover, fill='dark gray', width=2)
-    canvas.create_line(278, 349+mover, 278, 373+mover, fill='dark gray', width=2)
-    canvas.create_line(0, 269+mover, vertical_line_x, 269+mover, fill='dark gray', width=2)
-
-    toggle_buttons_position = [120, 172, 224]
-    toggle_button_texts = ["green", "yellow", "purple"]
     toggle_buttons = []
-    toggle_button_width = 5
-    for i in range(len(toggle_button_texts)):
-        toggle_buttons.append(tk.Button(root, text=toggle_button_texts[i], width=toggle_button_width, height=button_height, font=("Arial", int(8 * 1.25 - 0.5), "bold"), command=lambda i=i: toggle_button(i)))
+    color_names = ["green", "yellow", "purple"]
+    positions = [120, 172, 224]
 
-    for i in range(len(toggle_buttons)):
-       toggle_buttons[i].place(x=toggle_buttons_position[i], y=136.3+mover)
-    colors_lable = tk.Label(root, text="*Lines Colors*", bg='light grey', font=("Arial", 12, "bold"))
-    colors_lable.place(x=137, y=105+mover)
+    for index, (color, x) in enumerate(zip(color_names, positions)):
+        button = create_button(color, lambda i=index: toggle_button(i), x, 136.3 + mover, 5, 9)
+        toggle_buttons.append(button)
 
-    clear_button = tk.Button(root, text="Clear Lines", width=new_button_width+1, height=new_button_height, font=upper_bottons_font_style , command=clear_lines)
-    clear_button.place(x=275, y=120+mover)
+    create_label("*Lines Colors*", 137, 105 + mover)
 
-    points_label = tk.Label(root, text="      Points     ", bg='light grey', font=("Arial", 12, "bold"))
-    canvas.create_line(0, 14, line_end_x, 14, fill='dark gray', width=2)
-    points_label.place(x=30, y=2)
 
-    draw_square_button = tk.Button(root, text="Square", width=7, height=1, font=button_font_style, command=draw_square)
-    draw_square_button.place(x=680, y=355)
+def build_history_buttons():
+    global undo_button, redo_button
 
-    tutorial = tk.Button(root, text="?", width=2, height=1, font=("Arial", int(14 * 1.25), "bold"), command=open_tutorial)
-    tutorial.place(x=765, y=7)
+    undo_button = tk.Button(root, text="Undo", command=undo, width=6, state=tk.DISABLED)
+    redo_button = tk.Button(root, text="Redo", command=redo, width=6, state=tk.DISABLED)
+    angle_button = tk.Button(root, text="Custom angle", command=custom_rotation, width=11)
 
+    undo_button.place(x=450, y=355)
+    redo_button.place(x=510, y=355)
+    angle_button.place(x=570, y=355)
+
+    root.bind("<Control-z>", lambda event: undo())
+    root.bind("<Control-y>", lambda event: redo())
+
+
+def build_dividers():
+    available_width = square_x - 10
+    line_end_x = available_width - 20
+    vertical_line_x = square_x - 30
+
+    dividers = [
+        (0, 183 + mover, line_end_x, 183 + mover),
+        (vertical_line_x, 0, vertical_line_x, height),
+        (0, 373 + mover, 403, 373 + mover),
+        (0, 349 + mover, 403, 349 + mover),
+        (278, 349 + mover, 278, 373 + mover),
+        (0, 269 + mover, vertical_line_x, 269 + mover),
+        (0, 14, line_end_x, 14)
+    ]
+
+    for coordinates in dividers:
+        canvas.create_line(*coordinates, fill="dark gray", width=2)
+
+
+def build_controls():
+    build_dividers()
+
+    create_button("Submit", submit, 8, 120 + mover, 8, 15)
+    create_button("Clear Lines", clear_lines, 275, 120 + mover, 9, 15)
+
+    create_label("   Rotations   ", 30, 172 + mover)
+    create_label("Transformations & Mirrors", 30, 257 + mover)
+    create_label("      Points     ", 30, 2)
+    create_label(f"{MAKER} {NAME}", 15, 350 + mover, 10)
+    create_label(DATE, 300, 350 + mover, 10)
+
+    build_rotation_buttons()
+    build_displacement_buttons()
+    build_color_buttons()
+    build_history_buttons()
+
+    create_button("Square", draw_square, 680, 355, 7, 17)
+    create_button("?", open_tutorial, 765, 7, 2, 17)
+
+
+def main():
+    create_window()
+    build_grid()
+    build_coordinate_inputs()
+    build_controls()
     root.mainloop()
+
+
+if __name__ == "__main__":
+    main()
