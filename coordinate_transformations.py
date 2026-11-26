@@ -1,3 +1,4 @@
+
 import tkinter as tk
 import math
 from tkinter import messagebox, simpledialog
@@ -70,7 +71,9 @@ def capture_state():
 
 def restore_state(state):
     global lines, selected_colors
+
     lines, selected_colors = state
+
     draw_lines()
     update_history_buttons()
 
@@ -107,13 +110,16 @@ def get_selected_color():
     for i, button in enumerate(toggle_buttons):
         if button["relief"] == tk.SUNKEN:
             return i
+
     return -1
 
 
 def add_segments(segments):
     remember_state()
+
     lines.extend(segments)
     selected_colors.extend([get_selected_color()] * len(segments))
+
     draw_lines()
 
 
@@ -135,7 +141,9 @@ def transform_points(operation):
         return
 
     remember_state()
+
     lines = transformed
+
     draw_lines()
 
 
@@ -144,14 +152,18 @@ def rotation_function(degree):
 
     if degree == 0:
         return lambda x, y: (x, y)
+
     if degree == 90:
         return lambda x, y: (-y, x)
+
     if degree == 180:
         return lambda x, y: (-x, -y)
+
     if degree == 270:
         return lambda x, y: (y, -x)
 
     angle = math.radians(degree)
+
     cos_a = math.cos(angle)
     sin_a = math.sin(angle)
 
@@ -188,6 +200,7 @@ def read_coordinates():
 def submit():
     try:
         x1, y1, x2, y2 = read_coordinates()
+
     except ValueError as exc:
         messagebox.showerror("Invalid coordinates", str(exc))
         return
@@ -205,15 +218,19 @@ def displace_lines(dx, dy):
 
 def world_to_canvas(point):
     x, y = point
+
     center_x = square_x + square_size / 2
     center_y = square_y + square_size / 2
+
     return center_x + x * cell_size, center_y - y * cell_size
 
 
 def canvas_to_world(point):
     x, y = point
+
     center_x = square_x + square_size / 2
     center_y = square_y + square_size / 2
+
     return (x - center_x) / cell_size, (center_y - y) / cell_size
 
 
@@ -222,6 +239,7 @@ def resolve_line_color(index):
         return "black"
 
     color_index = selected_colors[index]
+
     return line_colors[color_index] if color_index != -1 else "black"
 
 
@@ -230,6 +248,7 @@ def draw_lines():
 
     for i, segment in enumerate(lines):
         color = resolve_line_color(i)
+
         start = world_to_canvas(segment[0])
         end = world_to_canvas(segment[1])
 
@@ -249,8 +268,10 @@ def clear_lines():
         return
 
     remember_state()
+
     lines.clear()
     selected_colors.clear()
+
     draw_lines()
 
 
@@ -284,17 +305,145 @@ def polygon_to_segments(points):
 
 def draw_square():
     points = [(1.0, 1.0), (1.0, 5.0), (5.0, 5.0), (5.0, 1.0)]
+
     add_segments(polygon_to_segments(points))
+
+
+def drawing_bounds():
+    if not lines:
+        return None
+
+    points = [point for segment in lines for point in segment]
+
+    xs, ys = zip(*points)
+
+    return min(xs), min(ys), max(xs), max(ys)
+
+
+def drawing_center():
+    bounds = drawing_bounds()
+
+    if bounds is None:
+        return 0.0, 0.0
+
+    left, bottom, right, top = bounds
+
+    return left / 2 + right / 2, bottom / 2 + top / 2
+
+
+def scale_lines(scale_x, scale_y, pivot=(0.0, 0.0)):
+    if not all(math.isfinite(value) for value in (scale_x, scale_y, *pivot)):
+        messagebox.showerror("Invalid scale", "Enter finite scale factors and pivot coordinates.")
+        return
+
+    px, py = pivot
+
+    transform_points(lambda x, y: (px + (x - px) * scale_x, py + (y - py) * scale_y))
+
+
+def custom_scaling():
+    if not lines:
+        messagebox.showinfo("Scaling", "Draw at least one line first.")
+        return
+
+    scale_x = simpledialog.askfloat("Horizontal scaling", "Enter X scale factor:", initialvalue=1.0, parent=root)
+
+    if scale_x is None:
+        return
+
+    scale_y = simpledialog.askfloat("Vertical scaling", "Enter Y scale factor:", initialvalue=scale_x, parent=root)
+
+    if scale_y is None:
+        return
+
+    use_center = messagebox.askyesnocancel("Scaling pivot", "Scale around the drawing center?\nYes: drawing center\nNo: origin", parent=root)
+
+    if use_center is None:
+        return
+
+    pivot = drawing_center() if use_center else (0.0, 0.0)
+
+    scale_lines(scale_x, scale_y, pivot)
+
+
+def custom_displacement():
+    if not lines:
+        messagebox.showinfo("Displacement", "Draw at least one line first.")
+        return
+
+    dx = simpledialog.askfloat("Horizontal displacement", "Enter X displacement:", initialvalue=0.0, parent=root)
+
+    if dx is None:
+        return
+
+    dy = simpledialog.askfloat("Vertical displacement", "Enter Y displacement:", initialvalue=0.0, parent=root)
+
+    if dy is None:
+        return
+
+    if not all(math.isfinite(value) for value in (dx, dy)):
+        messagebox.showerror("Invalid displacement", "Enter finite values.")
+        return
+
+    displace_lines(dx, dy)
+
+
+def segment_length(segment):
+    return math.dist(segment[0], segment[1])
+
+
+def analyze_geometry():
+    bounds = drawing_bounds()
+
+    if bounds is None:
+        return None
+
+    left, bottom, right, top = bounds
+
+    lengths = [segment_length(segment) for segment in lines]
+
+    center_x, center_y = drawing_center()
+
+    return {
+        "Line segments": len(lines),
+        "Unique endpoints": len({tuple(point) for segment in lines for point in segment}),
+        "Total line length": f"{sum(lengths):.4g}",
+        "Average line length": f"{sum(lengths) / len(lengths):.4g}",
+        "Shortest line": f"{min(lengths):.4g}",
+        "Longest line": f"{max(lengths):.4g}",
+        "Minimum X": f"{left:.4g}",
+        "Maximum X": f"{right:.4g}",
+        "Minimum Y": f"{bottom:.4g}",
+        "Maximum Y": f"{top:.4g}",
+        "Drawing width": f"{right - left:.4g}",
+        "Drawing height": f"{top - bottom:.4g}",
+        "Bounding-box center": f"({center_x:.4g}, {center_y:.4g})"
+    }
+
+
+def show_geometry():
+    analysis = analyze_geometry()
+
+    if analysis is None:
+        messagebox.showinfo("Geometry analysis", "Draw at least one line first.")
+        return
+
+    details = "\n".join(f"{label}: {value}" for label, value in analysis.items())
+
+    messagebox.showinfo("Geometry analysis", details, parent=root)
 
 
 def highlight_tutorial_control():
     canvas.delete("lines0")
+
     bounds = tutorial_boundaries[current_index]
+
     canvas.create_rectangle(*bounds, outline="red", width=2, tags="lines0")
 
 
 def display_elements(canvas_tutorial):
     canvas_tutorial.delete("elements")
+
     highlight_tutorial_control()
 
     canvas_tutorial.create_text(200, 30, text="Graphing Tool Properties:", font=("Arial", 17, "bold"), tags="elements")
@@ -311,6 +460,7 @@ def next_element():
 
     if current_index < len(letters) - 1:
         current_index += 1
+
         display_elements(canvas_tutorial)
         update_tutorial_buttons()
 
@@ -320,6 +470,7 @@ def previous_element():
 
     if current_index > 0:
         current_index -= 1
+
         display_elements(canvas_tutorial)
         update_tutorial_buttons()
 
@@ -327,11 +478,13 @@ def previous_element():
 def update_tutorial_buttons():
     if current_index == 0:
         back_button.place_forget()
+
     else:
         back_button.place(x=19, y=243)
 
     if current_index == len(letters) - 1:
         next_button.place_forget()
+
     else:
         next_button.place(x=283, y=243)
 
@@ -374,14 +527,17 @@ def open_tutorial():
         return
 
     current_index = 0
+
     root.geometry(f"{width}x{height}+50+200")
 
     page = tk.Toplevel(root)
+
     page.title("Tutorial")
     page.geometry("400x300+850+250")
     page.protocol("WM_DELETE_WINDOW", understood_button_click)
 
     canvas_tutorial = tk.Canvas(page, bg="light grey", width=400, height=300)
+
     canvas_tutorial.pack(fill="both", expand=True)
 
     build_tutorial_borders()
@@ -391,9 +547,13 @@ def open_tutorial():
 
 def understood_button_click():
     global current_index
+
     canvas.delete("lines0")
+
     page.destroy()
+
     root.geometry(f"{width}x{height}+{og_x}+{og_y}")
+
     current_index = 0
 
 
@@ -401,6 +561,7 @@ def create_window():
     global root, canvas, width, height, og_x, og_y
 
     root = tk.Tk()
+
     root.title("Coordinate Transformations")
 
     width, height = 800, 400
@@ -416,6 +577,7 @@ def create_window():
     root.resizable(False, False)
 
     canvas = tk.Canvas(root, bg="light grey", width=width, height=height)
+
     canvas.pack(fill="both", expand=True)
 
 
@@ -423,6 +585,7 @@ def build_grid():
     global square_size, square_x, square_y, cell_size
 
     square_size = min(width // 2, height - 63)
+
     square_x = width - square_size - 30
     square_y = (height - square_size) // 2
 
@@ -433,21 +596,28 @@ def build_grid():
 
     for i in range(grid_size + 1):
         y = square_y + i * cell_size
+
         color = "blue" if i == grid_size // 2 else "gray"
+
         canvas.create_line(square_x, y, square_x + square_size, y, fill=color)
 
     for i in range(grid_size + 1):
         x = square_x + i * cell_size
+
         color = "red" if i == grid_size // 2 else "gray"
+
         canvas.create_line(x, square_y, x, square_y + square_size, fill=color)
 
 
 def create_coordinate_entry(parent, name, row, column):
     label = tk.Label(parent, text=name, bg="light grey", font=("Arial", 14, "bold"))
+
     label.grid(row=row, column=column, padx=5, pady=5)
 
     entry = tk.Entry(parent, width=12)
+
     entry.grid(row=row, column=column + 1, padx=5, pady=5)
+
     return entry
 
 
@@ -455,28 +625,35 @@ def build_coordinate_inputs():
     global xrangle_x, xrangle_y, xrangle_x2, xrangle_y2
 
     input_frame = tk.Frame(root, bg="light grey")
+
     input_frame.place(x=33, y=29)
 
     xrangle_x = create_coordinate_entry(input_frame, "x1:", 0, 0)
     xrangle_y = create_coordinate_entry(input_frame, "y1:", 0, 2)
+
     xrangle_x2 = create_coordinate_entry(input_frame, "x2:", 1, 0)
     xrangle_y2 = create_coordinate_entry(input_frame, "y2:", 1, 2)
 
 
 def create_button(text, command, x, y, button_width=5, font_size=12):
     button = tk.Button(root, text=text, width=button_width, height=1, font=("Arial", font_size, "bold"), command=command)
+
     button.place(x=x, y=y)
+
     return button
 
 
 def create_label(text, x, y, font_size=12):
     label = tk.Label(root, text=text, bg="light grey", font=("Arial", font_size, "bold"))
+
     label.place(x=x, y=y)
+
     return label
 
 
 def build_rotation_buttons():
     angles = [-90, 90, 180, 270, -270]
+
     positions = [16, 91, 166, 241, 316]
 
     for angle, x in zip(angles, positions):
@@ -503,11 +680,14 @@ def build_color_buttons():
     global toggle_buttons
 
     toggle_buttons = []
+
     color_names = ["green", "yellow", "purple"]
+
     positions = [120, 172, 224]
 
     for index, (color, x) in enumerate(zip(color_names, positions)):
         button = create_button(color, lambda i=index: toggle_button(i), x, 136.3 + mover, 5, 9)
+
         toggle_buttons.append(button)
 
     create_label("*Lines Colors*", 137, 105 + mover)
@@ -518,6 +698,7 @@ def build_history_buttons():
 
     undo_button = tk.Button(root, text="Undo", command=undo, width=6, state=tk.DISABLED)
     redo_button = tk.Button(root, text="Redo", command=redo, width=6, state=tk.DISABLED)
+
     angle_button = tk.Button(root, text="Custom angle", command=custom_rotation, width=11)
 
     undo_button.place(x=450, y=355)
@@ -556,6 +737,7 @@ def build_controls():
     create_label("   Rotations   ", 30, 172 + mover)
     create_label("Transformations & Mirrors", 30, 257 + mover)
     create_label("      Points     ", 30, 2)
+
     create_label(f"{MAKER} {NAME}", 15, 350 + mover, 10)
     create_label(DATE, 300, 350 + mover, 10)
 
@@ -568,11 +750,33 @@ def build_controls():
     create_button("?", open_tutorial, 765, 7, 2, 17)
 
 
+def build_advanced_controls():
+    menu = tk.Menu(root, tearoff=False)
+
+    menu.add_command(label="Custom scaling", command=custom_scaling)
+    menu.add_command(label="Custom displacement", command=custom_displacement)
+
+    menu.add_separator()
+
+    menu.add_command(label="Geometry analysis", command=show_geometry)
+
+    def open_tools():
+        try:
+            menu.tk_popup(tools_button.winfo_rootx(), tools_button.winfo_rooty() + tools_button.winfo_height())
+
+        finally:
+            menu.grab_release()
+
+    tools_button = create_button("Tools", open_tools, 450, 3, 8, 10)
+
+
 def main():
     create_window()
     build_grid()
     build_coordinate_inputs()
     build_controls()
+    build_advanced_controls()
+
     root.mainloop()
 
 
